@@ -1,4 +1,5 @@
 from pydal import DAL
+from .database_tables import define_tables
 
 
 def retrieve_dal_connection(db_host, db_name, db_user, db_password):
@@ -18,10 +19,12 @@ def retrieve_dal_connection(db_host, db_name, db_user, db_password):
     db = DAL(
         uri,
         pool_size=10,
-        folder='./.database',
-        migrate=False,
+        folder='./',
+        migrate=True,
         fake_migrate=True,
         fake_migrate_all=True,
         check_reserved=['all'],
     )
+    define_tables(db)
+
     return db
