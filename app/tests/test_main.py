@@ -55,3 +55,13 @@ def test_candidate_search_3():
     assert response.status_code == 200
     response_json = response.json()
     assert len(response_json['candidates']) == 2
+
+
+def test_candidate_search_options():
+    response = client.get("/candidates/search-options")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert len(response_json['technologies']) > 10
+    assert len(response_json['cities']) > 10
+    assert response_json['experience_min'] == 0
+    assert response_json['experience_max'] == 99

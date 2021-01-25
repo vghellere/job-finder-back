@@ -4,7 +4,8 @@ from fastapi import APIRouter, Response, Depends
 from typing import Optional, List
 from app.core.schemas.candidates import CandidateImportResult, \
                                         CandidateSearchResult, \
-                                        Technologie, City, Candidate
+                                        Technologie, City, Candidate, \
+                                        CandidateSearchOptions
 from app.core.dependencies import get_db
 
 router = APIRouter(
@@ -96,7 +97,9 @@ def _import_candidates_to_db(db, candidates):
     candidates_import = 0
     for candidate in candidates:
         city = db(db.city.name == candidate['city']).select().first()
-        years_min, years_max = _extract_years_min_max_from_experience(candidate['experience'])
+        years_min, years_max = _extract_years_min_max_from_experience(
+            candidate['experience']
+        )
 
         db.candidate.update_or_insert(
             db.candidate.id == candidate['id'],
@@ -274,3 +277,85 @@ async def search_candidates(city_id: Optional[int] = None,
     )
 
     return matches_result
+
+
+def _get_city_options(db):
+    """Gets all available cities from the database
+
+    Args:
+        db (DAL): pyDAL connection object
+
+    Returns:
+        list[City]: List of City
+    """
+    cities = []
+    cities_query = db(db.city.id > 0).select()
+
+    for city in cities_query:
+        cities.append(
+            City(id=city.id, name=city.name)
+        )
+
+    return cities
+
+
+def _get_tech_options(db):
+    """Gets all available technologies from the database
+
+    Args:
+        db (DAL): pyDAL connection object
+
+    Returns:
+        list[Technologie]: List of Technologie
+    """
+    techs = []
+    techs_query = db(db.tech.id > 0).select()
+
+    for tech in techs_query:
+        techs.append(
+            Technologie(id=tech.id, name=tech.name)
+        )
+
+    return techs
+
+
+def _get_search_options(db):
+    """Create the CandidateSearchOptions object containing all cities and
+    technologies from the database
+
+    Args:
+        db (DAL): pyDAL connection object
+
+    Returns:
+        CandidateSearchOptions: Object with available search options
+    """
+    city_options = _get_city_options(db)
+    tech_options = _get_tech_options(db)
+    search_options = CandidateSearchOptions(
+        cities=city_options,
+        technologies=tech_options,
+        experience_min=0,
+        experience_max=99
+    )
+
+    return search_options
+
+
+@router.get(
+    "/search-options",
+    name="Returns search options to be used in the /candidates endpoint",
+    description="""Returns search options to be used in the /candidates
+endpoint
+
+    TODO: Cache the response of this endpoint
+    """,
+    response_model=CandidateSearchOptions,
+    responses={
+        200: {
+        }
+    }
+)
+async def search_options(db=Depends(get_db)):
+    search_options = _get_search_options(db)
+
+    return search_options
