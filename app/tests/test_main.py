@@ -15,3 +15,10 @@ def test_health_check():
     assert response.json() == {
         "status": 200, "message": "Everything is working fine here :D"
     }
+
+
+def test_import_cadidates():
+    response = client.post("/candidates/import")
+    assert response.status_code == 201
+    response_json = response.json()
+    assert response_json['candidates_imported'] == 100

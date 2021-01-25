@@ -5,6 +5,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from app.core import settings
 from app.core.dependencies import get_db
 from app.core.schemas.main import HealthCheck
+from app.core.routers import candidates
 
 
 """
@@ -19,6 +20,7 @@ sentry_sdk.init(
 )
 
 app = FastAPI()
+app.include_router(candidates.router, tags=['candidates'])
 
 
 @app.get("/")
