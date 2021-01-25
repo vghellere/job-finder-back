@@ -1,7 +1,22 @@
 from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse, Response
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+from app.core import settings
 from app.core.dependencies import get_db
 from app.core.schemas.main import HealthCheck
+
+
+"""
+    Using sentry to track application usage and errors, we use the
+    FlaskIntegration because it is compatible with FastAPI
+"""
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    integrations=[FlaskIntegration()],
+    environment=settings.SENTRY_ENVIRONMENT,
+    traces_sample_rate=1.0
+)
 
 app = FastAPI()
 

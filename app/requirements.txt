@@ -4,3 +4,4 @@ pydal==20200910.1
 pymysql==1.0.2
 requests==2.25.1
 pytest==6.2.1
+sentry-sdk[flask]==0.19.5
