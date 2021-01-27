@@ -1,8 +1,11 @@
 import requests
 import re
+import json
 from fastapi import APIRouter, Response, Depends
 from app.core.schemas.candidates import CandidateImportResult
 from app.core.dependencies import get_db
+from app.core.models.elasticsearch import get_elastic
+
 
 router = APIRouter(
     prefix="/management"
@@ -121,7 +124,72 @@ def _import_candidates_to_db(db, candidates):
     return candidates_import
 
 
-def _import_candidates(db):
+def _create_elastic_candidates_upsert_body(candidates):
+    """Create the bulk insert/update elastic body for the 'listings'
+    Note: Upsert is used here because in case the document already exists we
+    don't want to overwrite the 'clientsClassifiedIsGood' and
+    'clientsClassifiedIsNotGood' fields 
+
+    Args:
+        listings (list(dict)): List of listings
+
+    Returns:
+        str: Elastic bulk insert/update request
+    """
+    elastic_upsert_body = []
+    for candidate in candidates:
+        candidate_upsert_action = {
+            "update": {
+                "_id": candidate["id"],
+                "_index": "candidates"
+            }
+        }
+
+        techs = list(map(lambda tech: tech["name"], candidate["technologies"]))
+        years_min, years_max = _extract_years_min_max_from_experience(
+            candidate['experience']
+        )
+
+        candidate_upsert_detail = {
+            "doc": {
+                "candidate_id": candidate["id"],
+                "years_experience": {
+                    "gte": years_min,
+                    "lte": years_max
+                },
+                "city": candidate["city"],
+                "techs": techs,
+                "techs_nested": candidate["technologies"]
+            },
+            "doc_as_upsert": True
+        }
+        elastic_upsert_body.append(json.dumps(candidate_upsert_action))
+        elastic_upsert_body.append(json.dumps(candidate_upsert_detail))
+    elastic_upsert_body.append('')
+
+    return '\n'.join(elastic_upsert_body)
+
+
+def _import_cadidates_to_elastic(candidates):
+    """- Creates elastic bulk upsert based on cadidates
+    - Executes elastic bulk upsert
+
+    Args:
+        candidates (list[dict]): List of candidates
+    """
+    elastic_bulk_upsert = _create_elastic_candidates_upsert_body(candidates)
+
+    es = get_elastic()
+    elastic_response = es.bulk(
+        elastic_bulk_upsert,
+        'candidates',
+        timeout='10s'
+    )
+    if elastic_response['errors'] is True:
+        raise Exception('Error Inserting candidates into elastic')
+
+
+def _import_s3_data(db):
     """Read candidate list from S3 and import them into the DB
 
     Args:
@@ -135,6 +203,7 @@ def _import_candidates(db):
     _import_cities(db, candidates)
     _import_technologies(db, candidates)
     candidates_imported = _import_candidates_to_db(db, candidates)
+    _import_cadidates_to_elastic(candidates)
 
     db.commit()
     return candidates_imported
@@ -152,6 +221,6 @@ def _import_candidates(db):
     }
 )
 async def import_s3_data(response: Response, db=Depends(get_db)):
-    candidates_imported = _import_candidates(db)
+    candidates_imported = _import_s3_data(db)
     response.status_code = 201
     return CandidateImportResult(candidates_imported=candidates_imported)

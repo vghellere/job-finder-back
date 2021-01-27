@@ -5,3 +5,4 @@ pymysql==1.0.2
 requests==2.25.1
 pytest==6.2.1
 sentry-sdk[flask]==0.19.5
+elasticsearch==7.10.1

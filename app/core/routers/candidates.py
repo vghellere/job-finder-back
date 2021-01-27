@@ -1,10 +1,17 @@
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, HTTPException, Request
 from typing import Optional
+from requests.auth import HTTPBasicAuth
+import requests
+from sentry_sdk import capture_exception, push_scope
 from app.core.schemas.candidates import CandidateSearchResult, Candidate, \
                                         CandidateSearchOptions
 from app.core.schemas.city import City
 from app.core.schemas.technology import Technology
 from app.core.dependencies import get_db
+from app.core.models.elasticsearch import get_elastic_base_url, \
+                                          get_elastic_credentials
+from .. import settings
+
 
 router = APIRouter(
     prefix="/candidates"
@@ -213,3 +220,60 @@ async def search_options(db=Depends(get_db)):
     search_options = _get_search_options(db)
 
     return search_options
+
+
+@router.post(
+    "/elastic-proxy/candidates/_msearch",
+    name='Proxy for searching candidates in Elastic',
+    description="""This endpoint receives a request from ReactiveSearch,
+    forward the request to ElasticSearch and returns the results.
+    Additional check could be performed here
+    like user authorization or customized filters""")
+async def elastic_proxy_candidates(request: Request):
+    """This endpoint is used as a proxy for making searches in ElasticSearch
+    'candidates' index. It is called by the ReactiveSearch Front-End component.
+    
+    What this code does:
+    - Makes search request to ElasticSearch
+    - Returns Elastic response to the front-end
+
+    Args:
+        request (Request): FastAPI Request Object from which we get the POST
+        Body
+
+    Raises:
+        HTTPException: raises exception 400
+
+    Returns:
+        (dict): Elasticsearch response
+    """
+    body = await request.body()
+
+    es_url = '{}candidates/_msearch?'.format(get_elastic_base_url())
+    es_user, es_password = get_elastic_credentials()
+    headers = {'Content-Type': 'application/x-ndjson'}
+
+    es_request = requests.post(
+        es_url,
+        auth=HTTPBasicAuth(es_user, es_password),
+        headers=headers,
+        data=body,
+        timeout=10
+    )
+    
+    if es_request.status_code != 200:
+        error_message = "Error performing the search"
+        with push_scope() as scope:
+            scope.set_context(
+                "data",
+                {
+                    "elasticRequest": body,
+                    "elasticReponse": es_request.text
+                }
+            )
+            capture_exception(Exception(error_message))
+        raise HTTPException(status_code=es_request.status_code,
+                            detail=error_message)
+
+    request_response = es_request.json()
+    return request_response

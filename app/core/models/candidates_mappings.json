@@ -1,0 +1,63 @@
+/*
+Create Index
+PUT http://localhost:9200/candidate
+*/
+{
+    "mappings": {
+        "properties": {
+            "candidate_id":    { "type": "integer" },
+            "years_experience":    { "type": "integer_range" },
+            "city":    { "type": "keyword" },
+            "techs": { "type": "keyword" },
+            "techs_nested":  {
+                "type": "nested",
+                "properties": {
+                    "name": { "type": "keyword" },
+                    "is_main_tech":  { "type": "boolean" }
+                }
+            }
+        }
+    },
+    "settings": {
+        "index": {
+            "number_of_replicas": 2,
+            "number_of_shards": 5
+        }
+    }
+}
+  
+/*
+    Deletar index
+    DELETE http://localhost:9200/candidates
+*/
+  
+/*
+    Index a candidate example
+    PUT http://localhost:9200/candidates/_doc/31562
+*/
+{
+    "candidate_id": 31562,
+    "years_experience": { "gte": 12, "lte": 99},
+    "city": "Rio de Janeiro - RJ",
+    "techs": ["Java", "Python", "Java (Android)"],
+    "techs_nested":  [
+        {
+            "name": "Java",
+            "is_main_tech": true
+        },
+        {
+            "name": "Python",
+            "is_main_tech": false
+        },
+        {
+            "name": "Java (Android)",
+            "is_main_tech": false
+        }
+    ]
+}
+
+/*
+    Search example:
+    GET http://localhost:9200/candidates/_search?q=Python
+*/
+  
