@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from .city import City
+from .technology import Technology
 
 
 class CandidateImportResult(BaseModel):
@@ -13,23 +15,12 @@ class CandidateImportResult(BaseModel):
         }
 
 
-class City(BaseModel):
-    id: int
-    name: str
-
-
-class Technologie(BaseModel):
-    id: int
-    name: str
-    is_main_tech: Optional[bool]
-
-
 class Candidate(BaseModel):
     id: int
     city: City
     experience_min: int
     experience_max: int
-    technologies: List[Technologie]
+    technologies: List[Technology]
 
 
 class CandidateSearchResult(BaseModel):
@@ -38,6 +29,6 @@ class CandidateSearchResult(BaseModel):
 
 class CandidateSearchOptions(BaseModel):
     cities: List[City]
-    technologies: List[Technologie]
+    technologies: List[Technology]
     experience_min: int
     experience_max: int

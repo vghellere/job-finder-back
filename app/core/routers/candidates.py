@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Response, Depends
 from typing import Optional
-from app.core.schemas.candidates import CandidateSearchResult, \
-                                        Technologie, City, Candidate, \
+from app.core.schemas.candidates import CandidateSearchResult, Candidate, \
                                         CandidateSearchOptions
+from app.core.schemas.city import City
+from app.core.schemas.technology import Technology
 from app.core.dependencies import get_db
 
 router = APIRouter(
@@ -18,7 +19,7 @@ def _get_candidate_techs(db, candidate_id):
         candidate_id (int): Candidate ID
 
     Returns:
-        list[Technologie]: List of the candidates techs
+        list[Technology]: List of the candidates techs
     """
     technologies = []
     techs = db(
@@ -27,12 +28,12 @@ def _get_candidate_techs(db, candidate_id):
     ).select()
 
     for tech in techs:
-        technologie = Technologie(
+        technology = Technology(
             id=tech.tech.id,
             name=tech.tech.name,
             is_main_tech=tech.candidate_tech_reference.is_main_tech
         )
-        technologies.append(technologie)
+        technologies.append(technology)
     return technologies
 
 
@@ -63,7 +64,7 @@ def _search_candidates(db, city_id, experience_min, experience_max, techs):
         & (
             (db.candidate.years_experience_max <= experience_max)
             | ((db.candidate.years_experience_max == 99)
-            & (db.candidate.years_experience_min <= experience_max))
+                & (db.candidate.years_experience_min <= experience_max))
         )
     )
 
@@ -159,14 +160,14 @@ def _get_tech_options(db):
         db (DAL): pyDAL connection object
 
     Returns:
-        list[Technologie]: List of Technologie
+        list[Technology]: List of Technology
     """
     techs = []
     techs_query = db(db.tech.id > 0).select()
 
     for tech in techs_query:
         techs.append(
-            Technologie(id=tech.id, name=tech.name)
+            Technology(id=tech.id, name=tech.name)
         )
 
     return techs
