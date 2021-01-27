@@ -32,7 +32,12 @@ def _import_cities(db, candidates):
         db (DAL): pyDAL connection object
         candidates (list[dict]): List of candidates
     """
-    cities = set(map(lambda candidate: candidate['city'], candidates))
+    cities = set()
+    for candidate in candidates:
+        # remove leading and trailing whitespaces
+        candidate["city"] = candidate["city"].strip()
+        cities.add(candidate["city"])
+
     for city in cities:
         db.city.update_or_insert(
             db.city.name == city,
@@ -50,6 +55,7 @@ def _import_technologies(db, candidates):
     tech_set = set()
     for candidate in candidates:
         for tech in candidate['technologies']:
+            tech["name"] = tech["name"].strip()
             tech_set.add(tech['name'])
 
     for tech in tech_set:
