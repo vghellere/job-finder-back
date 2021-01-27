@@ -18,7 +18,7 @@ def test_health_check():
 
 
 def test_import_cadidates():
-    response = client.post("/candidates/import")
+    response = client.post("/management/import-s3-data")
     assert response.status_code == 201
     response_json = response.json()
     assert response_json['candidates_imported'] == 100

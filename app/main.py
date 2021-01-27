@@ -7,6 +7,7 @@ from app.core import settings
 from app.core.dependencies import get_db
 from app.core.schemas.main import HealthCheck
 from app.core.routers import candidates
+from app.core.routers import management
 
 
 """
@@ -22,6 +23,7 @@ sentry_sdk.init(
 
 app = FastAPI()
 app.include_router(candidates.router, tags=['candidates'])
+app.include_router(management.router, tags=['management'])
 
 origins = [
     "http://localhost:3000",
@@ -36,6 +38,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/")
 async def root():
