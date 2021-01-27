@@ -28,7 +28,7 @@ app.include_router(management.router, tags=['management'])
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://jobsfinder.viniciusghellere.dev",
+    "https://jobfinder.viniciusghellere.dev",
 ]
 
 app.add_middleware(
