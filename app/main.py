@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.responses import JSONResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from app.core import settings
@@ -22,6 +23,19 @@ sentry_sdk.init(
 app = FastAPI()
 app.include_router(candidates.router, tags=['candidates'])
 
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://jobsfinder.viniciusghellere.dev",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():

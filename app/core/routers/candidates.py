@@ -211,7 +211,11 @@ def _search_candidates(db, city_id, experience_min, experience_max, techs):
         & (db.candidate_tech_reference.candidate_id == db.candidate.id)
         & (db.candidate_tech_reference.tech_id == db.tech.id)
         & (db.candidate.years_experience_min >= experience_min)
-        & (db.candidate.years_experience_max <= experience_max)
+        & (
+            (db.candidate.years_experience_max <= experience_max)
+            | ((db.candidate.years_experience_max == 99)
+            & (db.candidate.years_experience_min <= experience_max))
+        )
     )
 
     if city_id:
