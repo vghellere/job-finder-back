@@ -1,0 +1,14 @@
+stages:
+- name: BUILD API
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: .
+      tag: jobfinder-api:${CICD_EXECUTION_ID}
+      pushRemote: true
+      registry: docker-registry.crazyworks.app
+- name: DEPLOY API
+  steps:
+  - applyYamlConfig:
+      path: ./deployment.yaml
+  

@@ -3,12 +3,12 @@ from typing import Optional
 from requests.auth import HTTPBasicAuth
 import requests
 from sentry_sdk import capture_exception, push_scope
-from app.core.schemas.candidates import CandidateSearchResult, Candidate, \
+from ..schemas.candidates import CandidateSearchResult, Candidate, \
                                         CandidateSearchOptions
-from app.core.schemas.city import City
-from app.core.schemas.technology import Technology
-from app.core.dependencies import get_db
-from app.core.models.elasticsearch import get_elastic_base_url, \
+from ..schemas.city import City
+from ..schemas.technology import Technology
+from ..dependencies import get_db
+from ..models.elasticsearch import get_elastic_base_url, \
                                           get_elastic_credentials
 from .. import settings
 

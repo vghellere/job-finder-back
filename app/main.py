@@ -3,11 +3,11 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
-from app.core import settings
-from app.core.dependencies import get_db
-from app.core.schemas.main import HealthCheck
-from app.core.routers import candidates
-from app.core.routers import management
+from .core.dependencies import get_db
+from .core.schemas.main import HealthCheck
+from .core.routers import candidates
+from .core.routers import management
+from .core import settings
 
 
 """

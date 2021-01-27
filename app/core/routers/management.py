@@ -2,9 +2,9 @@ import requests
 import re
 import json
 from fastapi import APIRouter, Response, Depends
-from app.core.schemas.candidates import CandidateImportResult
-from app.core.dependencies import get_db
-from app.core.models.elasticsearch import get_elastic
+from ..schemas.candidates import CandidateImportResult
+from ..dependencies import get_db
+from ..models.elasticsearch import get_elastic
 
 
 router = APIRouter(

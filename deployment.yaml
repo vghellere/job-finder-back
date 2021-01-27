@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobfinder-api
+  labels:
+    app: jobfinder-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobfinder-api
+  template:
+    metadata:
+      labels:
+        app: jobfinder-api
+    spec:
+      imagePullSecrets:
+      - name: dc-kz8ll
+      containers:
+      - name: jobfinder-api
+        image: docker-registry.crazyworks.app/jobfinder-api:${CICD_EXECUTION_ID}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-jobfinder
+                key: DB_HOST
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: mysql-jobfinder
+                key: DB_NAME
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-jobfinder
+                key: DB_USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-jobfinder
+                key: DB_PASSWORD
+          - name: SENTRY_DSN
+            valueFrom:
+              secretKeyRef:
+                name: sentry
+                key: SENTRY_DSN
+          - name: SENTRY_ENVIRONMENT
+            valueFrom:
+              secretKeyRef:
+                name: sentry
+                key: SENTRY_ENVIRONMENT
+          - name: ELASTIC_HOST
+            valueFrom:
+              secretKeyRef:
+                name: elastic
+                key: ELASTIC_HOST
+          - name: ELASTIC_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: elastic
+                key: ELASTIC_USERNAME
+          - name: ELASTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: elastic
+                key: ELASTIC_PASSWORD
+        ports:
+        - containerPort: 80
