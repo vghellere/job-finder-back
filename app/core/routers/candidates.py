@@ -150,7 +150,7 @@ def _get_city_options(db):
         list[City]: List of City
     """
     cities = []
-    cities_query = db(db.city.id > 0).select()
+    cities_query = db(db.city.id > 0).select(orderby=db.city.name)
 
     for city in cities_query:
         cities.append(
@@ -170,7 +170,7 @@ def _get_tech_options(db):
         list[Technology]: List of Technology
     """
     techs = []
-    techs_query = db(db.tech.id > 0).select()
+    techs_query = db(db.tech.id > 0).select(orderby=db.tech.name)
 
     for tech in techs_query:
         techs.append(
