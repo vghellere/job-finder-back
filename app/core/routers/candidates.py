@@ -147,18 +147,12 @@ async def search_candidates(city_id: Optional[int] = None,
 
     if len(main_results) < 5:
         experience_max = 99
-        extra_results = _search_candidates(
+        secondary_results = _search_candidates(
             db, city_id, experience_min, experience_max, techs
         )
 
-        main_results_ids = list(
-            map(lambda candidate: candidate.id, main_results)
-        )
-
-        secondary_results = []
-        for extra_result in extra_results:
-            if not(extra_result.id in main_results_ids):
-                secondary_results.append(extra_result)
+        for main_result in main_results:
+            secondary_results.remove(main_result)
 
         matches_result.secondary_candidates = secondary_results
 

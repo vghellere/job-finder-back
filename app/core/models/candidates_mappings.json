@@ -8,7 +8,19 @@ PUT http://localhost:9200/candidate
             "candidate_id":    { "type": "integer" },
             "years_experience":    { "type": "integer_range" },
             "city":    { "type": "keyword" },
-            "techs": { "type": "keyword" },
+            // 'techs' are stored as array ex.: ["Java", "Python", "Java (Android)"]
+            "techs": { "type": "keyword" }, 
+            /*
+                "techs_nested" stored as array
+                ex.: [{
+                        "name": "Java",
+                        "is_main_tech": true
+                    }]
+            NOTE: there are two fields for "techs" and "techs_nested" because
+            the ReactiveSearch components used in the front-end was not working
+            properly with the "nested" fields, so it was decided to create the
+            "techs" field as simple array
+            */
             "techs_nested":  {
                 "type": "nested",
                 "properties": {
