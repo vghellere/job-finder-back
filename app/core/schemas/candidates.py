@@ -24,7 +24,8 @@ class Candidate(BaseModel):
 
 
 class CandidateSearchResult(BaseModel):
-    candidates: List[Candidate]
+    main_candidates: List[Candidate]
+    secondary_candidates: List[Candidate]
 
 
 class CandidateSearchOptions(BaseModel):

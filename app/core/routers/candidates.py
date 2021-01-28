@@ -55,9 +55,9 @@ def _search_candidates(db, city_id, experience_min, experience_max, techs):
         techs (str): Comma separated string of Tech IDs
 
     Returns:
-        CandidateSearchResult: List of matched candidates
+        list(Candidate): List of matched candidates
     """
-    matches_result = CandidateSearchResult(candidates=[])
+    candidates = []
 
     tech_count = db.tech.id.count()
     years_min = db.candidate.years_experience_min.max()
@@ -108,8 +108,8 @@ def _search_candidates(db, city_id, experience_min, experience_max, techs):
             technologies=technologies
         )
 
-        matches_result.candidates.append(candidate)
-    return matches_result
+        candidates.append(candidate)
+    return candidates
 
 
 @router.get(
@@ -118,7 +118,10 @@ def _search_candidates(db, city_id, experience_min, experience_max, techs):
     description="""Search for candidates based on filters
 
 The algorithm selects the top 5 matches based first on years of experience
-then in the number of technologies the candidate knows
+then in the number of technologies the candidate knows.
+
+If there aren't 5 primary results a secondary search will be performed
+increasing the 'experience_max' parameter to 99
 
     TODO: Improve technologies matching
     """,
@@ -133,9 +136,33 @@ async def search_candidates(city_id: Optional[int] = None,
                             experience_max: Optional[int] = 99,
                             techs: Optional[str] = None,
                             db=Depends(get_db)):
-    matches_result = _search_candidates(
+    matches_result = CandidateSearchResult(
+        main_candidates=[],
+        secondary_candidates=[]
+    )
+
+    main_results = _search_candidates(
         db, city_id, experience_min, experience_max, techs
     )
+
+    if len(main_results) < 5:
+        experience_max = 99
+        extra_results = _search_candidates(
+            db, city_id, experience_min, experience_max, techs
+        )
+
+        main_results_ids = list(
+            map(lambda candidate: candidate.id, main_results)
+        )
+
+        secondary_results = []
+        for extra_result in extra_results:
+            if not(extra_result.id in main_results_ids):
+                secondary_results.append(extra_result)
+
+        matches_result.secondary_candidates = secondary_results
+
+    matches_result.main_candidates = main_results
 
     return matches_result
 

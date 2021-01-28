@@ -14,7 +14,7 @@ def test_health_check():
     }
 
 
-def test_import_cadidates():
+def tests_import_cadidates():
     response = client.post("/management/import-s3-data")
     assert response.status_code == 201
     response_json = response.json()
@@ -26,7 +26,7 @@ def test_candidate_search_1():
     response = client.get("/candidates", params=params)
     assert response.status_code == 200
     response_json = response.json()
-    assert len(response_json['candidates']) == 5
+    assert len(response_json['main_candidates']) == 5
 
 
 def test_candidate_search_2():
@@ -39,7 +39,7 @@ def test_candidate_search_2():
     response = client.get("/candidates", params=params)
     assert response.status_code == 200
     response_json = response.json()
-    assert len(response_json['candidates']) == 1
+    assert len(response_json['main_candidates']) == 0
 
 
 def test_candidate_search_3():
@@ -51,7 +51,29 @@ def test_candidate_search_3():
     response = client.get("/candidates", params=params)
     assert response.status_code == 200
     response_json = response.json()
-    assert len(response_json['candidates']) == 2
+    assert len(response_json['main_candidates']) == 0
+
+
+def test_candidate_search_4():
+    params = {
+        'experience_min': 4,
+        'experience_max': 10,
+        'techs': '236'  # Visual Basic
+    }
+    response = client.get("/candidates", params=params)
+    assert response.status_code == 200
+    response_json = response.json()
+    assert len(response_json['main_candidates']) == 2
+    assert len(response_json['secondary_candidates']) == 1
+
+    candidates_main_ids = [118380, 18460]
+    candidates_secondary_ids = [106140]
+
+    for candidate in response_json['main_candidates']:
+        assert candidate['id'] in candidates_main_ids
+
+    for candidate in response_json['secondary_candidates']:
+        assert candidate['id'] in candidates_secondary_ids
 
 
 def test_candidate_search_options():
